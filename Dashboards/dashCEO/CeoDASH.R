@@ -55,7 +55,7 @@ ui <- dashboardPage(
           selectInput(inputId = 'Time_unit',
                       label='Time_unit',
                       choices=c('Month','Year'),
-                      selected='Month')),
+                      selected='Month'))
       
     ),
     fluidRow(titlePanel("Marketing")),
