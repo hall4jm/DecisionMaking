@@ -58,7 +58,8 @@ ui <- dashboardPage(
                       selected='Month'))
       
     ),
-    fluidRow(titlePanel("Marketing")),
+    fluidRow(titlePanel("Marketing"),
+             box(plotOutput("markPlot"))),
     fluidRow(titlePanel("Finance")),
     fluidRow(titlePanel("Stocks"))
  
@@ -97,6 +98,12 @@ server <- function(input, output) {
   output$gauge4 <- renderPlot({
     gg.gauge(82, breaks = c(0,75,100))+labs(title = "Average MRR YTD")
     
+  })
+  output$markPlot <- renderPlot({
+    ggplot(data= data.frame(ts(rnorm(50))), aes_string(x=1:50,y=1:50))  + geom_bar(stat="identity") + 
+      labs(title="Subscriptions", y ="Number of subscribers") +
+      theme_classic() + 
+      theme(plot.title = element_text(hjust = 0.5))
   })
 }
 
