@@ -32,9 +32,29 @@ gg.gauge <- function(pos,breaks=c(0,70,100)) {
 subscribers = data.frame(Month = seq(as.Date("2015/1/1"), as.Date("2020/1/1"), "months"), Subs = rnorm(61, mean = 18, sd = 2))
 subscribers <- subscribers %>% mutate(Year = format(Month, "%Y"))
 
+marketing = data.frame(Month = seq(as.Date("2010/7/1"), as.Date("2020/1/1"), "quarter"), Revenue = freeny.y)
+marketing <- marketing %>% mutate(Year = format(Month, "%Y"))
+
 ui <- dashboardPage(
-  dashboardHeader(title = "Financial Performance Dashboard", titleWidth = 350, dropdownMenuOutput("messageMenu")),
-  dashboardSidebar(width = 350, collapsed = TRUE),
+  dashboardHeader(title = "Financial Performance Dashboard", titleWidth = 350),
+  dashboardSidebar(width = 350,
+                   dateRangeInput("daterange", "Date Range",
+                                      start = min(subscribers$Month),
+                                      end = max(subscribers$Month),
+                                      min = min(subscribers$Month),
+                                      max = max(subscribers$Month),
+                                      separator = " - ", format = "dd/mm/yy",
+                                      startview = 'Month', language = 'en', weekstart = 1),
+                   selectInput(inputId = 'Time_unit',
+                                   label='Unit',
+                                   choices=c('Month','Year'),
+                                   selected='Month'),
+                   selectInput(inputId = 'country_unit',
+                               label='Country',
+                               choices=c('Global','United States', 'Canada', 'Mexico', 'Brazil', 'England'
+                               , 'Ireland', 'Greenland', 'Iceland', 'Russia', 'South Korea', 'Vietnam'),
+                               selected='Global')
+                   ),
   dashboardBody(
     fluidRow(
       splitLayout(cellWidths = c("25%", "25%","25%","25%"),
@@ -44,24 +64,13 @@ ui <- dashboardPage(
                   plotOutput("gauge4", height = 100))
     ),
     fluidRow(titlePanel("Subscriptions"),
-      box(plotOutput("subsPlot", height = 200)),
-      box(dateRangeInput("daterange", "Date Range",
-                         start = min(subscribers$Month),
-                         end = max(subscribers$Month),
-                         min = min(subscribers$Month),
-                         max = max(subscribers$Month),
-                         separator = " - ", format = "dd/mm/yy",
-                         startview = 'Month', language = 'en', weekstart = 1),
-          selectInput(inputId = 'Time_unit',
-                      label='Time_unit',
-                      choices=c('Month','Year'),
-                      selected='Month'))
-      
+      box(plotOutput("subsPlot", height = 150), width = '100%')
     ),
-    fluidRow(titlePanel("Marketing"),
-             box(plotOutput("markPlot"))),
-    fluidRow(titlePanel("Finance")),
-    fluidRow(titlePanel("Stocks"))
+    fluidRow(titlePanel("Expenses"),
+             box(plotOutput("markPlot",height = 150), width = '100%')
+             ),
+    fluidRow(titlePanel("Finance"),
+             box(plotOutput("", height = 150))),
  
   )
 )
@@ -69,6 +78,7 @@ ui <- dashboardPage(
 server <- function(input, output) {
   dateRangeInput<-reactive({
     dataset <- subset(subscribers, Month >= input$daterange[1] & Month <= input$daterange[2])
+    print(head(dataset))
     dataset
   })
   selectInput= reactive({
@@ -77,9 +87,10 @@ server <- function(input, output) {
     dataset
   })
   
-  output$subsPlot <-renderPlot({
-    ggplot(data=selectInput(), aes_string(x=input$Time_unit,y="Sum"))  + geom_bar(stat="identity") + 
-      labs(title="Subscriptions", y ="Number of subscribers") +
+  output$subsPlot <- renderPlot({
+    print(input$Time_unit)
+    ggplot(data=selectInput(), aes_string(x = input$Time_unit, y = "Sum", group = 1)) + geom_line()+
+      labs(title="Subscribers", y ="Number of subscribers") +
       theme_classic() + 
       theme(plot.title = element_text(hjust = 0.5))
   })
@@ -100,8 +111,8 @@ server <- function(input, output) {
     
   })
   output$markPlot <- renderPlot({
-    ggplot(data= data.frame(ts(rnorm(50))), aes_string(x=1:50,y=1:50))  + geom_bar(stat="identity") + 
-      labs(title="Subscriptions", y ="Number of subscribers") +
+    ggplot(data= marketing, aes(x = Month, y = Revenue))  + geom_line(stat="identity") + 
+      labs(title="Revenue", y ="Number of subscribers") +
       theme_classic() + 
       theme(plot.title = element_text(hjust = 0.5))
   })
